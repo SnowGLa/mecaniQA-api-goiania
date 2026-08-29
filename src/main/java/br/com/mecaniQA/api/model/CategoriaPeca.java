@@ -1,5 +1,9 @@
-package com.mecaniqa.api.model;
+package br.com.mecaniQA.api.model;
 
- public enum CategoriaPeca {
-  MOTOR,SUSPENSAO,FREIO,ACESSORIOS,ELETRICA
+public enum CategoriaPeca {
+ MOTOR,
+ SUSPENSAO,
+ FREIOS,
+ ELETRICA,
+ ACESSORIOS
 }

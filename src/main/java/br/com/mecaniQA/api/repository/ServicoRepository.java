@@ -1,6 +1,7 @@
-package com.mecaniqa.api.repository;
+package br.com.mecaniQA.api.repository;
 
-import com.mecaniqa.api.model.Servico;
+import br.com.mecaniQA.api.model.Servico;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -8,12 +9,10 @@ import java.util.Optional;
 public class ServicoRepository {
 
     private static ServicoRepository instance;
-
-    private final List<Servico> servicos = new ArrayList<>();
-
-    private long proximoCodigo = 1;
+    private final List<Servico> servicos;
 
     private ServicoRepository() {
+        this.servicos = new ArrayList<>();
     }
 
     public static ServicoRepository getInstance() {
@@ -24,8 +23,6 @@ public class ServicoRepository {
     }
 
     public Servico salvar(Servico servico) {
-        servico.setCodigo(proximoCodigo);
-        proximoCodigo++;
         servicos.add(servico);
         return servico;
     }
@@ -34,13 +31,13 @@ public class ServicoRepository {
         return servicos;
     }
 
-    public Optional<Servico> buscarPorCodigo(Long codigo) {
+    public Optional<Servico> buscarPorId(Long id) {
         return servicos.stream()
-                .filter(s -> s.getCodigo().equals(codigo))
+                .filter(s -> s.getCodigo().equals(id))
                 .findFirst();
     }
 
-    public boolean deletar(Long codigo) {
-        return servicos.removeIf(s -> s.getCodigo().equals(codigo));
+    public boolean deletar(Long id) {
+        return servicos.removeIf(s -> s.getCodigo().equals(id));
     }
 }

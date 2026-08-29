@@ -1,6 +1,7 @@
-package com.mecaniqa.api.repository;
+package br.com.mecaniQA.api.repository;
 
-import com.mecaniqa.api.model.Peca;
+import br.com.mecaniQA.api.model.Peca;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -8,12 +9,9 @@ import java.util.Optional;
 public class PecaRepository {
 
     private static PecaRepository instance;
-
-    private final List<Peca> pecas = new ArrayList<>();
-
-    private long proximoCodigo = 1;
-
+    private final List<Peca> pecas;
     private PecaRepository() {
+        this.pecas = new ArrayList<>();
     }
 
     public static PecaRepository getInstance() {
@@ -24,8 +22,6 @@ public class PecaRepository {
     }
 
     public Peca salvar(Peca peca) {
-        peca.setCodigo(proximoCodigo);
-        proximoCodigo++;
         pecas.add(peca);
         return peca;
     }
@@ -34,13 +30,13 @@ public class PecaRepository {
         return pecas;
     }
 
-    public Optional<Peca> buscarPorCodigo(Long codigo) {
+    public Optional<Peca> buscarPorId(Long id) {
         return pecas.stream()
-                .filter(p -> p.getCodigo().equals(codigo))
+                .filter(p -> p.getCodigo().equals(id))
                 .findFirst();
     }
 
-    public boolean deletar(Long codigo) {
-        return pecas.removeIf(p -> p.getCodigo().equals(codigo));
+    public boolean deletar(Long id) {
+        return pecas.removeIf(p -> p.getCodigo().equals(id));
     }
 }
