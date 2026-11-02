@@ -1,0 +1,40 @@
+@startuml oat2-diagrama-atividade
+title Controller - POST /api/pedidos-pecas/{codigo}/itens
+start
+:Receber codigo e ItemPedidoPecaRequest;
+if (DTO e nulo?) then (sim)
+  :Retornar 400 Bad Request;
+  stop
+endif
+:Buscar pedido no PedidoPecasRepository;
+if (Pedido existe?) then (nao)
+  :Retornar 404 Not Found;
+  stop
+endif
+:Validar codigoPeca positivo e quantidade maior que zero;
+if (DTO valido?) then (nao)
+  :Retornar 400 Bad Request;
+  stop
+endif
+:Buscar peca no PecaRepository;
+if (Peca existe?) then (nao)
+  :Retornar 404 Not Found;
+  stop
+endif
+:Converter DTO com ItemPedidoPecaMapper;
+:Adicionar item ou somar quantidade de peca ja incluida;
+note right
+  A entidade revalida a existencia da peca.
+  Soma com verificacao de estouro de int.
+  Erros de dominio nao alteram o pedido.
+end note
+if (Inclusao rejeitada pelo dominio?) then (sim)
+  :Capturar IllegalArgumentException;
+  :Retornar 400 Bad Request;
+  stop
+endif
+:Atualizar dataUltimaAtualizacao e salvar pedido;
+:Converter pedido com PedidoPecasMapper;
+:Retornar 200 OK com PedidoPecasResponse;
+stop
+@enduml

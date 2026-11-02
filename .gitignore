@@ -1,53 +1,67 @@
+# Gradle e artefatos gerados
 HELP.md
-.gradle
+.gradle/
 build/
-!gradle/wrapper/gradle-wrapper.jar
+out/
+bin/
+*.class
+*.log
 !**/src/main/**/build/
 !**/src/test/**/build/
-
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
+!**/src/main/**/out/
+!**/src/test/**/out/
 !**/src/main/**/bin/
 !**/src/test/**/bin/
 
-### IntelliJ IDEA ###
-.idea
+# Ambiente e variantes locais (nao versionar credenciais)
+.env
+.env.*
+*.env
+*.env.*
+
+# IntelliJ IDEA
+.idea/
 *.iws
 *.iml
 *.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
 
-### NetBeans ###
+# Eclipse / STS
+.apt_generated/
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
+
+# VS Code
+.vscode/
+
+# NetBeans / BlueJ / Java ME
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-
-### VS Code ###
-.vscode/
-# Compiled class file
-*.class
-
-# Log file
-*.log
-
-# BlueJ files
 *.ctxt
-
-# Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Relatorios gerados, temporarios e diffs de revisao
+/reports/
+/test-results/
+/test-output/
+/coverage/
+/tmp/
+/temp/
+*.diff
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+~$*
+
+# Pacotes gerados; o JAR do Gradle Wrapper deve ser versionado
 *.jar
 *.war
 *.nar
@@ -55,7 +69,18 @@ out/
 *.zip
 *.tar.gz
 *.rar
+!/gradle/wrapper/gradle-wrapper.jar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Logs de falha da JVM
 hs_err_pid*
 replay_pid*
+
+# Temporarios do sistema operacional
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# PDFs de apresentacoes fazem parte da entrega
+!/apresentacoes/**/*.pdf

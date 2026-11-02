@@ -1,42 +1,57 @@
 package br.com.mecaniQA.api.repository;
 
+import br.com.mecaniQA.api.jdbc.AbstractJdbcRepository;
+import br.com.mecaniQA.api.jdbc.JdbcConnectionFactory;
+import br.com.mecaniQA.api.jdbc.mapper.PecaResultSetMapper;
 import br.com.mecaniQA.api.model.Peca;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
-public class PecaRepository {
-
-    private static PecaRepository instance;
-    private final List<Peca> pecas;
-    private PecaRepository() {
-        this.pecas = new ArrayList<>();
+@org.springframework.stereotype.Repository
+public class PecaRepository extends AbstractJdbcRepository<Peca> {
+    public PecaRepository(JdbcConnectionFactory conexoes) {
+        super(conexoes);
     }
 
-    public static PecaRepository getInstance() {
-        if (instance == null) {
-            instance = new PecaRepository();
-        }
-        return instance;
+    @Override
+    protected String tabela() {
+        return "peca";
     }
 
-    public Peca salvar(Peca peca) {
-        pecas.add(peca);
-        return peca;
+    @Override
+    protected String insertSql() {
+        return "INSERT INTO peca"
+                + " (nome,codigo_barras,fornecedor_marca,categoria,quantidade_estoque,preco_custo,"
+                + "preco_venda,tamanho,cor,data_cadastro,data_ultima_atualizacao)"
+                + " VALUES (?,?,?,?,?,?,?,?,?,?,?)";
     }
 
-    public List<Peca> listarTodas() {
-        return pecas;
+    @Override
+    protected String updateSql() {
+        return "UPDATE peca SET"
+                + " nome=?,codigo_barras=?,fornecedor_marca=?,categoria=?,quantidade_estoque=?,"
+                + "preco_custo=?,preco_venda=?,tamanho=?,cor=?,data_cadastro=?,"
+                + "data_ultima_atualizacao=?,versao=versao+1"
+                + " WHERE codigo=? AND versao=?";
     }
 
-    public Optional<Peca> buscarPorId(Long id) {
-        return pecas.stream()
-                .filter(p -> p.getCodigo().equals(id))
-                .findFirst();
+    @Override
+    protected void bindInsert(PreparedStatement statement, Peca entidade) throws SQLException {
+        PecaResultSetMapper.bind(statement, entidade);
     }
 
-    public boolean deletar(Long id) {
-        return pecas.removeIf(p -> p.getCodigo().equals(id));
+    @Override
+    protected void bindUpdate(PreparedStatement statement, Peca entidade) throws SQLException {
+        PecaResultSetMapper.bind(statement, entidade);
+        statement.setLong(12, entidade.getCodigo());
+        statement.setLong(13, entidade.getVersao());
+    }
+
+    @Override
+    protected Peca map(ResultSet resultSet, Connection conexao) throws SQLException {
+        return PecaResultSetMapper.map(resultSet);
     }
 }

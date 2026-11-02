@@ -9,7 +9,7 @@ version = "0.0.1-SNAPSHOT"
 
 java {
 	toolchain {
-		languageVersion = JavaLanuageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
@@ -19,10 +19,24 @@ repositories {
 
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
+	runtimeOnly("com.mysql:mysql-connector-j")
 	testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+tasks.test {
+	useJUnitPlatform { excludeTags("mysql") }
+}
+
+tasks.register<Test>("mysqlIntegrationTest") {
+	description = "Executa testes opcionais contra MySQL real configurado por MYSQL_TEST_*."
+	group = "verification"
+	testClassesDirs = sourceSets.test.get().output.classesDirs
+	classpath = sourceSets.test.get().runtimeClasspath
+	useJUnitPlatform { includeTags("mysql") }
+	onlyIf { System.getenv("MYSQL_TEST_URL") != null && System.getenv("MYSQL_TEST_USERNAME") != null && System.getenv("MYSQL_TEST_PASSWORD") != null }
 }

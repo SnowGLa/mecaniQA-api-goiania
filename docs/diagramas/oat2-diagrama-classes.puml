@@ -1,0 +1,230 @@
+@startuml oat2-diagrama-classes
+title mecaniQA - OAT 2 - Diagrama de classes
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+hide empty members
+
+package "model" {
+  class Peca {
+    -codigo : Long {readOnly}
+    -nome : String
+    -codigoBarras : String
+    -fornecedorMarca : String
+    -categoria : CategoriaPeca
+    -quantidadeEstoque : int
+    -precoCusto : Double
+    -precoVenda : Double
+    -tamanho : String
+    -cor : String
+    -dataCadastro : LocalDateTime
+    -dataUltimaAtualizacao : LocalDateTime
+  }
+  class Servico {
+    -codigo : Long {readOnly}
+    -nome : String
+    -tempoEstimadoMinutos : int
+    -custoTabelado : Double
+    -dataCriacao : LocalDateTime
+    -dataUltimaAtualizacao : LocalDateTime
+  }
+  class OrdemServico {
+    -codigo : Long {readOnly}
+    -status : StatusOrdemServico
+    -codigosServicos : List<Long> {readOnly}
+    -codigosPecas : List<Long> {readOnly}
+    -dataCriacao : LocalDateTime {readOnly}
+    -dataUltimaAtualizacao : LocalDateTime
+    -OrdemServico(builder : Builder)
+    +{static} builder() : Builder
+    +alterarStatus(status : StatusOrdemServico) : void
+  }
+  class "OrdemServico.Builder" as OrdemBuilder <<nested>> {
+    -status : StatusOrdemServico = ABERTO
+    -codigosServicos : List<Long>
+    -codigosPecas : List<Long>
+    -Builder()
+    +status(status : StatusOrdemServico) : Builder
+    +codigosServicos(codigos : List<Long>) : Builder
+    +codigosPecas(codigos : List<Long>) : Builder
+    +build() : OrdemServico
+  }
+  class PedidoPecas {
+    -codigo : Long {readOnly}
+    -status : StatusPedidoPecas = ORCANDO
+    -itens : List<ItemPedidoPeca>
+    -dataCriacao : LocalDateTime {readOnly}
+    -dataUltimaAtualizacao : LocalDateTime
+    +PedidoPecas(itens : List<ItemPedidoPeca>)
+    +adicionarItem(item : ItemPedidoPeca) : void
+    +alterarStatus(status : StatusPedidoPecas) : void
+  }
+  class ItemPedidoPeca <<associativa, imutavel>> {
+    -codigoPeca : Long {readOnly}
+    -quantidade : int {readOnly}
+    +ItemPedidoPeca(codigoPeca : Long, quantidade : int)
+  }
+  enum CategoriaPeca {
+    MOTOR
+    SUSPENSAO
+    FREIOS
+    ELETRICA
+    ACESSORIOS
+  }
+  enum StatusOrdemServico {
+    ABERTO
+    PENDENTE_PAGAMENTO
+    PAGO
+    EM_EXECUCAO
+    EXECUTADO
+  }
+  enum StatusPedidoPecas {
+    ORCANDO
+    PENDENTE_PAGAMENTO
+    PAGO_FATURADO
+    ENTREGUE
+  }
+}
+
+OrdemServico +-- OrdemBuilder : classe aninhada
+OrdemBuilder ..> OrdemServico : constroi e valida
+OrdemServico "0..*" --> "0..*" Servico : codigosServicos
+OrdemServico "0..*" --> "0..*" Peca : codigosPecas
+OrdemServico --> "1" StatusOrdemServico
+PedidoPecas --> "1" StatusPedidoPecas
+Peca --> "0..1" CategoriaPeca
+PedidoPecas "1" *-- "0..*" ItemPedidoPeca : itens
+ItemPedidoPeca "0..*" --> "1" Peca : codigoPeca
+note right of OrdemBuilder
+  Copias defensivas imutaveis.
+  Exige ao menos um servico ou peca.
+  Referencias positivas, existentes e sem repeticoes.
+  Status padrao ABERTO; status explicito nao pode ser nulo.
+end note
+note right of ItemPedidoPeca
+  Quantidade > 0; peca existente ao incluir.
+  Repeticoes somam quantidade no pedido.
+  As referencias sao armazenadas por codigo,
+  sem remocao em cascata ao excluir a peca.
+end note
+
+package "repository" {
+  class PecaRepository <<Singleton>> {
+    -{static} instance : PecaRepository
+    -PecaRepository()
+    +{static} getInstance() : PecaRepository
+    +salvar(peca : Peca) : Peca
+    +buscarPorId(codigo : Long) : Optional<Peca>
+    +listarTodas() : List<Peca>
+    +deletar(codigo : Long) : boolean
+  }
+  class ServicoRepository <<Singleton>> {
+    -{static} instance : ServicoRepository
+    -ServicoRepository()
+    +{static} getInstance() : ServicoRepository
+    +salvar(servico : Servico) : Servico
+    +buscarPorId(codigo : Long) : Optional<Servico>
+    +listarTodos() : List<Servico>
+    +deletar(codigo : Long) : boolean
+  }
+  class OrdemServicoRepository <<Singleton>> {
+    -{static} instance : OrdemServicoRepository
+    -OrdemServicoRepository()
+    +{static} getInstance() : OrdemServicoRepository
+    +salvar(ordem : OrdemServico) : OrdemServico
+    +buscarPorId(codigo : Long) : Optional<OrdemServico>
+    +listarTodos() : List<OrdemServico>
+  }
+  class PedidoPecasRepository <<Singleton>> {
+    -{static} instance : PedidoPecasRepository
+    -PedidoPecasRepository()
+    +{static} getInstance() : PedidoPecasRepository
+    +salvar(pedido : PedidoPecas) : PedidoPecas
+    +buscarPorId(codigo : Long) : Optional<PedidoPecas>
+    +listarTodos() : List<PedidoPecas>
+  }
+}
+PecaRepository "1" o-- "0..*" Peca
+ServicoRepository "1" o-- "0..*" Servico
+OrdemServicoRepository "1" o-- "0..*" OrdemServico
+PedidoPecasRepository "1" o-- "0..*" PedidoPecas
+OrdemBuilder ..> PecaRepository : valida existencia
+OrdemBuilder ..> ServicoRepository : valida existencia
+ItemPedidoPeca ..> PecaRepository : valida existencia
+PedidoPecas ..> PecaRepository : valida ao vincular
+
+package "dto - entrada e saida" {
+  class PecaRequest <<record>>
+  class PecaResponse <<record>>
+  class ServicoRequest <<record>>
+  class ServicoResponse <<record>>
+  class OrdemServicoRequest <<record>> {
+    +codigosServicos : List<Long>
+    +codigosPecas : List<Long>
+  }
+  class OrdemServicoResponse <<record>> {
+    +codigo : Long
+    +status : StatusOrdemServico
+    +codigosServicos : List<Long>
+    +codigosPecas : List<Long>
+    +dataCriacao : LocalDateTime
+    +dataUltimaAtualizacao : LocalDateTime
+  }
+  class StatusOrdemServicoRequest <<record>>
+  class PedidoPecasRequest <<record>>
+  class PedidoPecasResponse <<record>>
+  class ItemPedidoPecaRequest <<record>>
+  class ItemPedidoPecaResponse <<record>>
+  class StatusPedidoPecasRequest <<record>>
+}
+PedidoPecasRequest "1" *-- "0..*" ItemPedidoPecaRequest
+PedidoPecasResponse "1" *-- "0..*" ItemPedidoPecaResponse
+
+package "mapper - metodos estaticos" {
+  class PecaMapper <<static>>
+  class ServicoMapper <<static>>
+  class OrdemServicoMapper <<static>>
+  class PedidoPecasMapper <<static>>
+  class ItemPedidoPecaMapper <<static>>
+}
+PecaMapper ..> Peca
+PecaMapper ..> PecaRequest
+PecaMapper ..> PecaResponse
+ServicoMapper ..> Servico
+ServicoMapper ..> ServicoRequest
+ServicoMapper ..> ServicoResponse
+OrdemServicoMapper ..> OrdemBuilder
+OrdemServicoMapper ..> OrdemServicoRequest
+OrdemServicoMapper ..> OrdemServicoResponse
+PedidoPecasMapper ..> PedidoPecas
+PedidoPecasMapper ..> PedidoPecasRequest
+PedidoPecasMapper ..> PedidoPecasResponse
+PedidoPecasMapper ..> ItemPedidoPecaMapper
+ItemPedidoPecaMapper ..> ItemPedidoPeca
+ItemPedidoPecaMapper ..> ItemPedidoPecaRequest
+ItemPedidoPecaMapper ..> ItemPedidoPecaResponse
+
+package "controller - fronteira HTTP por DTOs" {
+  class PecaController
+  class ServicoController
+  class OrdemServicoController
+  class PedidoPecasController
+}
+PecaController ..> PecaMapper
+PecaController --> PecaRepository
+ServicoController ..> ServicoMapper
+ServicoController --> ServicoRepository
+OrdemServicoController ..> OrdemServicoMapper
+OrdemServicoController ..> StatusOrdemServicoRequest
+OrdemServicoController --> OrdemServicoRepository
+PedidoPecasController ..> PedidoPecasMapper
+PedidoPecasController ..> ItemPedidoPecaMapper
+PedidoPecasController ..> StatusPedidoPecasRequest
+PedidoPecasController --> PedidoPecasRepository
+PedidoPecasController --> PecaRepository
+
+legend bottom
+  Listagens retornam copias imutaveis; dados somente em memoria.
+  Codigos e datas gerados pela aplicacao nao fazem parte dos DTOs de entrada.
+  POST de OS ignora status recebido e sempre cria ABERTO.
+endlegend
+@enduml
